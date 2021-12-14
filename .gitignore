@@ -1,0 +1,37 @@
+HELP.md
+.gradle
+/build/
+/target/
+/fias/
+/payments/
+/accounts/
+/export/
+!gradle/wrapper/gradle-wrapper.jar
+/**/application.properties
+.attach_pid*
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
