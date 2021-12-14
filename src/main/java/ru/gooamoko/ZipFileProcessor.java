@@ -20,6 +20,7 @@ import java.util.zip.ZipInputStream;
 public class ZipFileProcessor implements PaymentsArchiveProcessor {
     private static final Logger log = LoggerFactory.getLogger(ZipFileProcessor.class);
     private static final int THREADS_COUNT = 4;
+    private static final int BUFFER_SIZE = 512;
 
     private final InputStream sourceInputStream;
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -40,24 +41,24 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
         final ExecutorCompletionService<Boolean> processingService = new ExecutorCompletionService<>(pool);
 
         long startTime = System.currentTimeMillis();
+        log.info("Запущена обработка архива с документами.");
         try (ZipInputStream zipInputStream = new ZipInputStream(sourceInputStream)) {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int entryCount = 0;
             int failCount = 0;
+            int readCount;
 
             ZipEntry entry = zipInputStream.getNextEntry();
             while (entry != null) {
                 entryCount += 1;
                 String fileName = entry.getName();
-                log.info("processing entry: {}", fileName);
 
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                int len;
-                while ((len = zipInputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, len);
+                while ((readCount = zipInputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, readCount);
                 }
 
-                DocumentProcessor processor = new DocumentProcessor(outputStream.toByteArray());
+                DocumentProcessor processor = new DocumentProcessor(outputStream.toByteArray(), fileName);
                 processingService.submit(processor);
 
                 zipInputStream.closeEntry();
@@ -72,9 +73,10 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
                 }
             }
 
-            log.info("Обработка завершена успешно. Обработано документов: {}. Из них с ошибками: {}. Обработка заняла {} мс.", entryCount, failCount, System.currentTimeMillis() - startTime);
+            log.info("Обработка архива завершена. Обработано файлов: {}. Из них с ошибками: {}. Обработка заняла {} мс.",
+                    entryCount, failCount, System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            log.error("Ошибка при обработке zip архива", e);
+            log.error("Ошибка при обработке zip архива.", e);
         }
     }
 
@@ -93,13 +95,16 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
 
     private class DocumentProcessor implements Callable<Boolean> {
         private final byte[] entryContent;
+        private final String fileName;
 
-        public DocumentProcessor(byte[] entryContent) {
+        public DocumentProcessor(byte[] entryContent, String fileName) {
             this.entryContent = entryContent;
+            this.fileName = fileName;
         }
 
         @Override
         public Boolean call() {
+            log.debug("processing entry: {}", fileName);
             if (entryContent == null || entryContent.length == 0) {
                 return Boolean.FALSE;
             }
@@ -114,6 +119,7 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
                 amount = (amount == null) ? payment.getPaymentAmount() : amount.add(payment.getPaymentAmount());
                 payments.put(dayKey, amount);
             } catch (Exception e) {
+                log.error("Ошибка при обработке файла {}.", fileName, e);
                 return Boolean.FALSE;
             }
 
