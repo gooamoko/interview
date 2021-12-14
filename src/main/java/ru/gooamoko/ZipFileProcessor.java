@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -73,6 +74,13 @@ public class ZipFileProcessor {
             log.error("Ошибка при обработке zip архива", e);
         }
     }
+
+    public BigDecimal getAmountPerDate(Date date) {
+        String dateKey = dateFormatter.format(date);
+        BigDecimal amount = payments.get(dateKey);
+        return amount == null ? BigDecimal.ZERO : amount;
+    }
+
 
     private class DocumentProcessor implements Callable<Boolean> {
         private final byte[] entryContent;
