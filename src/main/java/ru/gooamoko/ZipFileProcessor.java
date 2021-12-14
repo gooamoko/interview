@@ -15,9 +15,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * Класс для обработки зип-архива
+ * Класс для обработки зип-архива с информацией о платежах.
  */
-public class ZipFileProcessor {
+public class ZipFileProcessor implements PaymentsArchiveProcessor {
     private static final Logger log = LoggerFactory.getLogger(ZipFileProcessor.class);
     private static final int THREADS_COUNT = 4;
 
@@ -32,7 +32,10 @@ public class ZipFileProcessor {
         this.sourceInputStream = sourceInputStream;
     }
 
-    public void processZip() {
+    /**
+     * Обрабатываем архив
+     */
+    public void processArchive() {
         final ExecutorService pool = Executors.newFixedThreadPool(THREADS_COUNT);
         final ExecutorCompletionService<Boolean> processingService = new ExecutorCompletionService<>(pool);
 
@@ -75,6 +78,12 @@ public class ZipFileProcessor {
         }
     }
 
+    /**
+     * Возвращаем сумму платежей за указанный день.
+     *
+     * @param date дата, определяющая день, за который нужна сумма
+     * @return сумма поатежей, либо 0.
+     */
     public BigDecimal getAmountPerDate(Date date) {
         String dateKey = dateFormatter.format(date);
         BigDecimal amount = payments.get(dateKey);
