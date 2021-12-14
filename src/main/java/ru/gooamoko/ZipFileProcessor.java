@@ -82,7 +82,7 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
      * Возвращаем сумму платежей за указанный день.
      *
      * @param date дата, определяющая день, за который нужна сумма
-     * @return сумма поатежей, либо 0.
+     * @return сумма платежей, либо 0.
      */
     public BigDecimal getAmountPerDate(Date date) {
         String dateKey = dateFormatter.format(date);
