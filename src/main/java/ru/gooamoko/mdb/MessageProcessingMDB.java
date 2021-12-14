@@ -17,12 +17,12 @@ import javax.jms.TextMessage;
                 @ActivationConfigProperty(propertyName = "destinationType",
                         propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination",
-                        propertyValue = EgrulEgripProcessingMDB.EGRUL_EGRIP_PROCESSING_QUEUE_NAME)
+                        propertyValue = MessageProcessingMDB.QUEUE_NAME)
         })
 
 public class MessageProcessingMDB implements MessageListener {
-    private static final Log LOG = LogFactory.getLog(EgrulEgripProcessingMDB.class);
-    protected static final String EGRUL_EGRIP_PROCESSING_QUEUE_NAME = "jms/EgrulEgripProcessingQueue";
+    private static final Log LOG = LogFactory.getLog(MessageProcessingMDB.class);
+    protected static final String QUEUE_NAME = "jms/MessageProcessingQueue";
 
     @EJB
     private MessageProcessLocal processEjb;
@@ -30,7 +30,7 @@ public class MessageProcessingMDB implements MessageListener {
     @Override
     public void onMessage(Message message) {
         if (LOG.isInfoEnabled()) {
-            LOG.info("EgrulEgripProcessingMDB message received.");
+            LOG.info("MessageProcessingMDB message received.");
         }
 
         if (!(message instanceof TextMessage)) {
@@ -43,12 +43,12 @@ public class MessageProcessingMDB implements MessageListener {
 
         try {
             String fileStorageId = textMessage.getStringProperty("FILE_STORAGE_ID");
-            String isEgrul = textMessage.getStringProperty("IS_EGRUL");
-            processEjb.process(new Long(fileStorageId), "1".equals(isEgrul) ? true : false);
+            String isJson = textMessage.getStringProperty("IS_JSON");
+            processEjb.process(new Long(fileStorageId), "1".equals(isJson) ? true : false);
         } catch (JMSException e) {
-            LOG.error("EgrulEgripProcessingMDB Error while getting object from message.", e);
+            LOG.error("MessageProcessingMDB Error while getting object from message.", e);
         } catch (Exception e) {
-            LOG.error("EgrulEgripProcessingMDB Error while getting object from message.", e);
+            LOG.error("MessageProcessingMDB Error while getting object from message.", e);
         }
     }
 }
