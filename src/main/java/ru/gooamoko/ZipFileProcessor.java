@@ -58,7 +58,7 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
                     outputStream.write(buffer, 0, readCount);
                 }
 
-                DocumentProcessor processor = new DocumentProcessor(outputStream.toByteArray(), fileName);
+                ZipEntryProcessor processor = new ZipEntryProcessor(outputStream.toByteArray(), fileName);
                 processingService.submit(processor);
 
                 zipInputStream.closeEntry();
@@ -93,11 +93,11 @@ public class ZipFileProcessor implements PaymentsArchiveProcessor {
     }
 
 
-    private class DocumentProcessor implements Callable<Boolean> {
+    private class ZipEntryProcessor implements Callable<Boolean> {
         private final byte[] entryContent;
         private final String fileName;
 
-        public DocumentProcessor(byte[] entryContent, String fileName) {
+        public ZipEntryProcessor(byte[] entryContent, String fileName) {
             this.entryContent = entryContent;
             this.fileName = fileName;
         }
